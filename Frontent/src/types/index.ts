@@ -270,5 +270,6 @@ export interface StaffMember {
   assignedTasks?: number;
   completedTasks?: number;
   createdBy?: string;
+  password?: string;
 }
 

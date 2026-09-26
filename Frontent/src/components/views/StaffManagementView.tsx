@@ -31,7 +31,10 @@ import {
   MapPin,
   Eye,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  Lock,
+  EyeOff,
+  KeyRound
 } from 'lucide-react';
 
 const getInitials = (name: string): string => {
@@ -81,6 +84,7 @@ export const StaffManagementView: React.FC = () => {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showModalPassword, setShowModalPassword] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [viewingStaff, setViewingStaff] = useState<StaffMember | null>(null);
 
@@ -90,6 +94,7 @@ export const StaffManagementView: React.FC = () => {
     loginId: '',
     email: '',
     phone: '',
+    password: 'Operator@123',
     role: 'Warehouse Staff',
     warehouseId: 'WH-001',
     department: 'Floor Operations & Logistics',
@@ -103,6 +108,7 @@ export const StaffManagementView: React.FC = () => {
       loginId: '',
       email: '',
       phone: '',
+      password: 'Operator@123',
       role: 'Warehouse Staff',
       warehouseId: warehouses[0]?.id || 'WH-001',
       department: 'Floor Operations & Logistics',
@@ -110,6 +116,7 @@ export const StaffManagementView: React.FC = () => {
       status: 'Active'
     });
     setEditingStaff(null);
+    setShowModalPassword(false);
   };
 
   const handleOpenAddModal = () => {
@@ -124,12 +131,14 @@ export const StaffManagementView: React.FC = () => {
       loginId: staff.loginId,
       email: staff.email,
       phone: staff.phone,
+      password: '',
       role: staff.role,
       warehouseId: staff.warehouseId,
       department: staff.department,
       shift: staff.shift,
       status: staff.status
     });
+    setShowModalPassword(false);
     setIsAddModalOpen(true);
   };
 
@@ -137,6 +146,16 @@ export const StaffManagementView: React.FC = () => {
     e.preventDefault();
     if (!formData.fullName.trim() || !formData.email.trim()) {
       showToast('Please provide full name and corporate email.', 'warning');
+      return;
+    }
+
+    if (!editingStaff && (!formData.password || formData.password.length < 6)) {
+      showToast('Login password must be at least 6 characters long.', 'warning');
+      return;
+    }
+
+    if (editingStaff && formData.password && formData.password.length < 6) {
+      showToast('New password must be at least 6 characters long.', 'warning');
       return;
     }
 
@@ -908,6 +927,50 @@ export const StaffManagementView: React.FC = () => {
                     size="md"
                   />
                 </div>
+              </div>
+
+              {/* Login Password for website login */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700">
+                    {editingStaff ? 'Login Password (leave blank to keep current)' : 'Login Password'}{' '}
+                    {!editingStaff && <span className="text-rose-500">*</span>}
+                  </label>
+                  {!editingStaff && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, password: 'Operator@123' })}
+                      className="text-[10.5px] text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3 text-blue-600" />
+                      <span>Use Default (Operator@123)</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type={showModalPassword ? 'text' : 'password'}
+                    required={!editingStaff}
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    placeholder={editingStaff ? 'Enter new password to reset' : 'Min 6 characters (e.g. Operator@123)'}
+                    className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowModalPassword(!showModalPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50 transition-colors cursor-pointer"
+                    title={showModalPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showModalPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                  Operator will use their Login ID (<strong className="font-mono text-slate-600">{formData.loginId || formData.email?.split('@')[0] || 'login ID'}</strong>) or email with this password to log in.
+                </p>
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">

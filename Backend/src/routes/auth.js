@@ -244,9 +244,15 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       });
     }
 
-    // Find by email or loginId
+    // Find by email or loginId (case-insensitive)
+    const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const user = await User.findOne({
-      $or: [{ email: identifier }, { loginId: identifier }],
+      $or: [
+        { email: identifier },
+        { loginId: identifier },
+        { email: new RegExp(`^${escapedIdentifier}$`, 'i') },
+        { loginId: new RegExp(`^${escapedIdentifier}$`, 'i') },
+      ],
     });
 
     if (!user) {

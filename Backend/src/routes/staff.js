@@ -4,8 +4,38 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Warehouse = require('../models/Warehouse');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { hashPassword } = require('../services/passwordUtils');
 
 const router = express.Router();
+
+/**
+ * Helper to look up a staff user by ObjectId, loginId, or email
+ */
+async function findStaffByIdOrIdentifier(id, body = {}) {
+  const idStr = (id || '').trim();
+  if (idStr && mongoose.Types.ObjectId.isValid(idStr)) {
+    const u = await User.findById(idStr);
+    if (u) return u;
+  }
+
+  const cleanEmail = body.email ? body.email.toLowerCase().trim() : '';
+  const cleanLoginId = body.loginId ? body.loginId.trim() : '';
+
+  const conditions = [];
+  if (idStr) {
+    conditions.push({ loginId: idStr });
+    conditions.push({ email: idStr.toLowerCase() });
+  }
+  if (cleanEmail) {
+    conditions.push({ email: cleanEmail });
+  }
+  if (cleanLoginId) {
+    conditions.push({ loginId: cleanLoginId });
+  }
+
+  if (conditions.length === 0) return null;
+  return User.findOne({ $or: conditions });
+}
 
 /**
  * Helper to format user doc into StaffMember shape
@@ -139,13 +169,7 @@ router.get('/', requireAuth, async (req, res, next) => {
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({
-        error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
-      });
-    }
-
-    const user = await User.findById(id).lean();
+    const user = await findStaffByIdOrIdentifier(id);
     if (!user) {
       return res.status(404).json({
         error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
@@ -156,8 +180,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
     const whMap = new Map();
     warehouses.forEach((w) => whMap.set(w._id.toString(), w));
 
+    const userObj = user.toObject ? user.toObject() : user;
     return res.json({
-      data: formatStaffMember(user, whMap),
+      data: formatStaffMember(userObj, whMap),
     });
   } catch (err) {
     next(err);
@@ -208,7 +233,7 @@ router.post('/', requireAuth, requireRole('manager'), async (req, res, next) => 
     }
 
     const rawPassword = password || 'Invexa@2026';
-    const passwordHash = await bcrypt.hash(rawPassword, 10);
+    const passwordHash = await hashPassword(rawPassword);
 
     let whObjId = null;
     let resolvedWhName = warehouseName || '';
@@ -258,13 +283,7 @@ router.post('/', requireAuth, requireRole('manager'), async (req, res, next) => 
 const updateStaffHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({
-        error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
-      });
-    }
-
-    const user = await User.findById(id);
+    const user = await findStaffByIdOrIdentifier(id, req.body);
     if (!user) {
       return res.status(404).json({
         error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
@@ -286,6 +305,8 @@ const updateStaffHandler = async (req, res, next) => {
       active,
       assignedTasks,
       completedTasks,
+      password,
+      loginId,
     } = req.body;
 
     if (fullName !== undefined) {
@@ -294,6 +315,10 @@ const updateStaffHandler = async (req, res, next) => {
     } else if (name !== undefined) {
       user.name = name.trim();
       user.fullName = name.trim();
+    }
+
+    if (loginId !== undefined && loginId.trim()) {
+      user.loginId = loginId.trim();
     }
 
     if (email !== undefined) {
@@ -325,6 +350,12 @@ const updateStaffHandler = async (req, res, next) => {
     if (active !== undefined) user.active = Boolean(active);
     if (assignedTasks !== undefined) user.assignedTasks = Number(assignedTasks);
     if (completedTasks !== undefined) user.completedTasks = Number(completedTasks);
+    
+    // Hash password if supplied
+    const pwdToUpdate = (password !== undefined && password !== null) ? String(password).trim() : '';
+    if (pwdToUpdate) {
+      user.passwordHash = await hashPassword(pwdToUpdate);
+    }
 
     if (warehouseId !== undefined) {
       if (warehouseId && mongoose.Types.ObjectId.isValid(warehouseId)) {
@@ -365,13 +396,7 @@ router.patch('/:id', requireAuth, requireRole('manager'), updateStaffHandler);
 router.patch('/:id/toggle-status', requireAuth, requireRole('manager'), async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({
-        error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
-      });
-    }
-
-    const user = await User.findById(id);
+    const user = await findStaffByIdOrIdentifier(id);
     if (!user) {
       return res.status(404).json({
         error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
@@ -400,13 +425,7 @@ router.patch('/:id/toggle-status', requireAuth, requireRole('manager'), async (r
 router.delete('/:id', requireAuth, requireRole('manager'), async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({
-        error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
-      });
-    }
-
-    const user = await User.findById(id);
+    const user = await findStaffByIdOrIdentifier(id);
     if (!user) {
       return res.status(404).json({
         error: { code: 'STAFF_NOT_FOUND', message: 'Staff member not found.' },
