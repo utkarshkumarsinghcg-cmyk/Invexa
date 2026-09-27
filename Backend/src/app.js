@@ -36,6 +36,15 @@ const healthHandler = (req, res) => {
   });
 };
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Invexa / StockSense Inventory API',
+    health: '/health',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 app.get('/api/v1/health', healthHandler);

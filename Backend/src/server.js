@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`[Server] StockSense Inventory Transaction Engine running on port ${PORT}`);
     });
   } catch (err) {
