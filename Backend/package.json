@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
-    "seed": "node src/scripts/seed.js",
     "reconcile": "node src/scripts/reconcile.js",
     "test": "jest --runInBand --detectOpenHandles --forceExit"
   },

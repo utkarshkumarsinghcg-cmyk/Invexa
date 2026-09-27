@@ -16,9 +16,7 @@ import {
   Clock,
   Store,
   ArrowRight,
-  Sparkles,
-  Zap,
-  Activity
+  Sparkles
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -34,8 +32,6 @@ import {
   Filler
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
-import { SpotlightCard, AnimatedCounter, ShinyText, DotGridBackground, BorderBeam } from '../animations';
-import { Badge, Button } from '../ui';
 
 ChartJS.register(
   CategoryScale,
@@ -180,238 +176,200 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Welcome Header with Interactive Dot Matrix and Border Beam */}
-      <div className="relative rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs overflow-hidden">
-        <DotGridBackground className="absolute inset-0 z-0 opacity-40" />
-        <BorderBeam size={260} duration={12} colorFrom="#3b82f6" colorTo="#60a5fa" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="info" dot={true} size="sm">
-                Live Gateway WH-001
-              </Badge>
-              <span className="text-xs text-slate-400">•</span>
-              <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                All Systems Connected
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 mt-2 font-display flex items-center gap-2">
-              <span>Good morning,</span>
-              <ShinyText
-                text={currentUser?.fullName || currentUser?.name || currentUser?.loginId || 'Operations Leader'}
-                className="font-extrabold"
-              />
-              <span>👋</span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Real-time multi-warehouse operations summary, stock alerts, and fulfillment pipelines.
-            </p>
+      {/* Top Welcome Header */}
+      <div className="card p-6 bg-gradient-to-r from-white via-white to-blue-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200">
+              Live Gateway WH-001
+            </span>
+            <span className="text-xs text-slate-400">•</span>
+            <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              All Systems Connected
+            </span>
           </div>
+          <h1 className="text-2xl font-bold text-slate-900 mt-1.5 font-display">
+            Good morning, {currentUser?.fullName || currentUser?.name || currentUser?.loginId || 'Operations Leader'} 👋
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time multi-warehouse operations summary, stock alerts, and fulfillment pipelines.
+          </p>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {!isStaff && (
-              <>
-                <Button
-                  onClick={() => setActiveView('receipts')}
-                  variant="secondary"
-                  size="sm"
-                  className="h-9 font-semibold"
-                >
-                  <ArrowDownLeft className="w-4 h-4 text-blue-600" />
-                  <span>+ New Receipt</span>
-                </Button>
-                <Button
-                  onClick={() => setActiveView('deliveries')}
-                  variant="default"
-                  size="sm"
-                  className="h-9 font-semibold"
-                >
-                  <Truck className="w-4 h-4" />
-                  <span>+ New Delivery</span>
-                </Button>
-              </>
-            )}
-            <Button
-              onClick={() => setActiveView('transfers')}
-              variant={isStaff ? 'default' : 'secondary'}
-              size="sm"
-              className="h-9 font-semibold"
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-              <span>+ New Transfer</span>
-            </Button>
-            {isStaff && (
-              <Button
-                onClick={() => setActiveView('transfers')}
-                variant="secondary"
-                size="sm"
-                className="h-9 font-semibold"
+        <div className="flex flex-wrap items-center gap-2">
+          {!isStaff && (
+            <>
+              <button
+                onClick={() => setActiveView('receipts')}
+                className="btn btn-secondary text-xs"
               >
-                <PlusCircle className="w-4 h-4 text-emerald-600" />
-                <span>+ Stock Count</span>
-              </Button>
-            )}
-          </div>
+                <ArrowDownLeft className="w-4 h-4 text-blue-600" />
+                <span>+ New Receipt</span>
+              </button>
+              <button
+                onClick={() => setActiveView('deliveries')}
+                className="btn btn-primary text-xs"
+              >
+                <Truck className="w-4 h-4" />
+                <span>+ New Delivery</span>
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setActiveView('transfers')}
+            className={`btn text-xs ${isStaff ? 'btn-primary' : 'btn-subtle'}`}
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            <span>+ New Transfer</span>
+          </button>
+          {isStaff && (
+            <button
+              onClick={() => setActiveView('transfers')}
+              className="btn btn-secondary text-xs"
+            >
+              <PlusCircle className="w-4 h-4 text-emerald-600" />
+              <span>+ Stock Count</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 8 Metric KPI Cards Grid with Interactive Mouse-Following Spotlight */}
+      {/* 8 Metric KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* KPI 1 */}
-        <SpotlightCard
-          onClick={() => setActiveView('products')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView('products')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Total Products</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <Package className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-display">
-            <AnimatedCounter value={kpis.totalProducts} />
+            {kpis.totalProducts.toLocaleString()}
           </div>
           <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-2">
             <TrendingUp className="w-3.5 h-3.5" /> 6 Active categories
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 2 */}
-        <SpotlightCard
-          onClick={() => setActiveView('stock')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView('stock')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Total Stock Units</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-display">
-            <AnimatedCounter value={kpis.totalStock} /> <span className="text-xs font-normal text-slate-400">units</span>
+            {kpis.totalStock.toLocaleString()} <span className="text-xs font-normal text-slate-400">units</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
             Across 8 bin locations
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 3 */}
-        <SpotlightCard
-          spotlightColor="rgba(245, 158, 11, 0.12)"
+        <div
+          className={`kpi-card ${kpis.lowStock > 0 ? 'border-amber-300 bg-amber-50/20' : ''}`}
           onClick={() => setActiveView('products')}
-          className={`p-5 cursor-pointer select-none ${kpis.lowStock > 0 ? 'border-amber-300/80 bg-amber-50/15' : ''}`}
         >
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Low Stock</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-amber-600 font-display">
-            <AnimatedCounter value={kpis.lowStock} /> <span className="text-xs font-normal text-amber-500">items</span>
+            {kpis.lowStock} <span className="text-xs font-normal text-amber-500">items</span>
           </div>
           <div className="text-[11px] font-semibold text-amber-600 mt-2">
             Reorder thresholds reached
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 4 */}
-        <SpotlightCard
-          spotlightColor="rgba(225, 29, 72, 0.12)"
+        <div
+          className={`kpi-card ${kpis.outOfStock > 0 ? 'border-red-300 bg-red-50/20' : ''}`}
           onClick={() => setActiveView('products')}
-          className={`p-5 cursor-pointer select-none ${kpis.outOfStock > 0 ? 'border-rose-300/80 bg-rose-50/15' : ''}`}
         >
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Out of Stock</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
               <AlertOctagon className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-rose-600 font-display">
-            <AnimatedCounter value={kpis.outOfStock} /> <span className="text-xs font-normal text-rose-500">items</span>
+          <div className="text-2xl font-bold text-red-600 font-display">
+            {kpis.outOfStock} <span className="text-xs font-normal text-red-500">items</span>
           </div>
-          <div className="text-[11px] font-semibold text-rose-600 mt-2">
+          <div className="text-[11px] font-semibold text-red-600 mt-2">
             Automated PO ready
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 5 */}
-        <SpotlightCard
-          onClick={() => setActiveView(isStaff ? 'transfers' : 'receipts')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView(isStaff ? 'transfers' : 'receipts')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">{isStaff ? 'Internal Transfers' : 'Pending Receipts'}</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               {isStaff ? <ArrowLeftRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
             </div>
           </div>
           <div className="text-2xl font-bold text-blue-600 font-display">
-            <AnimatedCounter value={isStaff ? (transfers || []).length : kpis.pendingReceipts} />
+            {isStaff ? (transfers || []).length : kpis.pendingReceipts}
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
             {isStaff ? `${readyTransfers} ready to execute` : `${readyReceipts} ready at inbound dock`}
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 6 */}
-        <SpotlightCard
-          onClick={() => setActiveView(isStaff ? 'warehouses' : 'deliveries')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView(isStaff ? 'warehouses' : 'deliveries')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">{isStaff ? 'Storage Locations' : 'Pending Deliveries'}</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
               {isStaff ? <Building2 className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
             </div>
           </div>
           <div className="text-2xl font-bold text-indigo-600 font-display">
-            <AnimatedCounter value={isStaff ? (locations || []).length : kpis.pendingDeliveries} />
+            {isStaff ? (locations || []).length : kpis.pendingDeliveries}
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
             {isStaff ? 'Racks, Bins & Aisles' : `${readyDeliveries} picked & ready to ship`}
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 7 */}
-        <SpotlightCard
-          onClick={() => setActiveView('transfers')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView('transfers')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Internal Transfers</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
               <ArrowLeftRight className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-purple-600 font-display">
-            <AnimatedCounter value={kpis.internalTransfers} />
+            {kpis.internalTransfers}
           </div>
           <div className="text-[11px] font-semibold text-purple-600 mt-2">
             Zero company stock drift
           </div>
-        </SpotlightCard>
+        </div>
 
         {/* KPI 8 */}
-        <SpotlightCard
-          onClick={() => setActiveView('warehouses')}
-          className="p-5 cursor-pointer select-none"
-        >
+        <div className="kpi-card" onClick={() => setActiveView('warehouses')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold">Active Warehouses</span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
               <Building2 className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-display">
-            <AnimatedCounter value={kpis.warehouses} />
+            {kpis.warehouses}
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
             Gandhinagar, Kalol, Transit
           </div>
-        </SpotlightCard>
+        </div>
       </div>
 
       {/* Visual Inventory Flowchart Widget */}
